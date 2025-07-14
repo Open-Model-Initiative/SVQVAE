@@ -16,11 +16,16 @@ SVQVAE is a scalable variant of the Vector Quantized Variational Autoencoder tha
 
 ## Architecture
 
+The model for this repository can be found at:
+
+https://huggingface.co/openmodelinitiative/SQVAE
+
 The model consists of three main components:
 
 1. **Encoder**: Convolutional network that compresses input images to latent representations
 2. **Vector Quantizer**: Discretizes continuous latent vectors using a learned codebook
 3. **Decoder**: Reconstructs images from quantized latent representations
+
 
 ## Installation
 
@@ -98,21 +103,6 @@ config = ModelArgs(
 
 model = ScalableVQVAE(config)
 ```
-
-## Model Parameters
-
-### ModelArgs Configuration
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `codebook_size` | 16384 | Number of discrete codebook entries |
-| `codebook_embed_dim` | 8 | Dimension of codebook embeddings |
-| `codebook_l2_norm` | True | Whether to L2 normalize embeddings |
-| `commit_loss_beta` | 0.25 | Weight for commitment loss |
-| `encoder_ch_mult` | [1,1,2,2,4] | Channel multipliers for encoder |
-| `decoder_ch_mult` | [1,1,2,2,4] | Channel multipliers for decoder |
-| `z_channels` | 256 | Number of latent channels |
-| `dropout_p` | 0.0 | Dropout probability |
 
 ## Training
 
