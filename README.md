@@ -14,6 +14,14 @@ SVQVAE is a scalable variant of the Vector Quantized Variational Autoencoder tha
 - **Attention Mechanisms**: Includes self-attention blocks for better feature learning
 - **Flexible Architecture**: Configurable encoder/decoder with customizable channel multipliers
 
+### Sample Outputs
+
+<div align="center">
+  <img src="output_final_1.png" width="200" alt="Output 1">
+  <img src="output_final_2.png" width="200" alt="Output 2">
+  <img src="output_final_3.png" width="200" alt="Output 3">
+</div>
+
 ## Architecture
 
 The model for this repository can be found at:
@@ -168,6 +176,7 @@ with torch.no_grad():
 ## Examples
 
 See `inference_example.ipynb` for detailed usage examples and visualizations.
+
 
 ## Dependencies
 
