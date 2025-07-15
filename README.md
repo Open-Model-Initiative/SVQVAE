@@ -1,202 +1,139 @@
-# SVQVAE (Scalable Vector Quantized Variational Autoencoder)
+# Scalable VQ‑VAE (SVQVAE)
 
-A PyTorch implementation of a scalable Vector Quantized Variational Autoencoder (VQVAE) for high-resolution image generation and reconstruction. This implementation supports tiled processing for handling large images efficiently.
+[![Licence](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](#installation)
+[![Paper](https://img.shields.io/badge/arXiv-2502.20313-b31b1b.svg)](https://arxiv.org/abs/2502.20313)
 
-## Overview
+A **scalable Vector‑Quantised Variational Autoencoder (VQ‑VAE)** that supports *tile‑wise* encoding/decoding.
 
-SVQVAE is a scalable variant of the Vector Quantized Variational Autoencoder that can process high-resolution images through tiled encoding and decoding. The model uses a discrete codebook to compress images into a latent representation and can reconstruct them at multiple scales.
+---
 
-### Key Features
+## ✨ Highlights
 
-- **Scalable Processing**: Handles high-resolution images through tiled processing
-- **Multi-scale Output**: Can generate reconstructions at different scales
-- **Vector Quantization**: Uses a discrete codebook for efficient compression
-- **Attention Mechanisms**: Includes self-attention blocks for better feature learning
-- **Flexible Architecture**: Configurable encoder/decoder with customizable channel multipliers
+| Feature | Description |
+|---------|-------------|
+| **Scalable tiling** | Encode & decode arbitrarily large images by sliding window. |
+| **Multi‑scale outputs** | Return reconstructions at user‑selected latent patch sizes (4 × 4 → 64 × 64). |
+| **Lightweight codebook** | 16 k entries, 8‑D embeddings. |
 
-### Sample Outputs
+---
+
+## 🏗️ Architecture
+
+    Input → Encoder → **Vector Quantiser** → Decoder → Output
+
+* **Encoder / Decoder** – channel multiplier controlled by `encoder_ch_mult`, `decoder_ch_mult` (default `[1,2,2,4]`).  
+* **Vector Quantiser** – codebook size 16 384, embed dim 8.   
+For theory see **FlexVAR: Flexible Visual Autoregressive Modelling without Residual Prediction** (Jiao *et al.*, 2025).
+
+---
+
+## 🚀 Quick Start
+
+### 1 · Install
+
+```bash
+git clone https://github.com/Open-Model-Initiative/SVQVAE.git
+cd SVQVAE
+python -m venv .venv && source .venv/Scripts/activate
+pip install -r requirements.txt
+```
+
+### 2 · Download a checkpoint
+
+```bash
+curl -L \
+  https://huggingface.co/openmodelinitiative/SVQVAE/resolve/main/svqvae_weights.safetensors \
+  -o svqvae_weights.safetensors
+```
+
+### 3 · Single‑image inference
+
+```python
+import torch
+from PIL import Image
+from torchvision.transforms.functional import to_tensor
+from svqvae import ScalableVQVAE, ModelArgs
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+model = ScalableVQVAE.load(
+    "svqvae_weights.safetensors",
+    model_args=ModelArgs(
+                codebook_size=16384,
+                codebook_embed_dim=8,
+                codebook_l2_norm=True,
+                codebook_show_usage=True,
+                commit_loss_beta=0.25,
+                entropy_loss_ratio=0.0,
+                encoder_ch_mult=[1, 2, 2, 4],
+                decoder_ch_mult=[1, 2, 2, 4],
+                z_channels=32,
+                dropout_p=0.0,
+            )
+).to(device)
+
+pil_img = Image.open("example.jpg").convert("RGB")
+x = to_tensor(pil_img).unsqueeze(0).to(device)
+
+scales = [4, 8, 16, 32, 64]   # latent patch sizes
+with torch.no_grad():
+    outs, _ = model(x, 
+                    patch_nums=scales,
+                    tile_size=512,   # RGB tile size
+                    overlap=256)     # RGB tile overlap
+```
+
+See [`inference_example.ipynb`](inference_example.ipynb) for end‑to‑end demos.
+
+---
+
+## 🗿 Example notebook output for batched inference
 
 <div align="center">
-  <img src="output_final_1.png" width="200" alt="Output 1">
   <img src="output_final_2.png" width="200" alt="Output 2">
   <img src="output_final_3.png" width="200" alt="Output 3">
 </div>
 
-## Architecture
+---
 
-The model for this repository can be found at:
-
-https://huggingface.co/openmodelinitiative/SQVAE
-
-The model consists of three main components:
-
-1. **Encoder**: Convolutional network that compresses input images to latent representations
-2. **Vector Quantizer**: Discretizes continuous latent vectors using a learned codebook
-3. **Decoder**: Reconstructs images from quantized latent representations
+## 🏋️‍♂️ Training
 
 
-## Installation
+Coming Soon!
 
-### Prerequisites
+---
 
-- Python 3.8+
-- CUDA-compatible GPU (recommended)
-- PyTorch with CUDA support
+## 📄 Citation
 
-### Setup
+```bibtex
+@misc{jiao2025flexvarflexiblevisualautoregressive,
+      title={FlexVAR: Flexible Visual Autoregressive Modeling without Residual Prediction}, 
+      author={Siyu Jiao and Gengwei Zhang and Yinlong Qian and Jiancheng Huang and Yao Zhao and Humphrey Shi and Lin Ma and Yunchao Wei and Zequn Jie},
+      year={2025},
+      eprint={2502.20313},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2502.20313}, 
+}
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd SVQVAE
+@software{bryant2025svqvae,
+  author  = {Austin J. Bryant},
+  title   = {SVQVAE: Scalable Vector Quantised Variational Autoencoder},
+  url     = {https://github.com/Open-Model-Initiative/SVQVAE},
+  version = {1.0.0},
+  year    = {2025},
+  license = {Apache‑2.0}
+}
 ```
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+---
 
-## Usage
+## 🔒 License
 
-### Basic Usage
+Released under the **Apache 2.0** license – see [`LICENSE`](LICENSE).
+---
 
-```python
-import torch
-from sqvae import ScalableVQVAE, ModelArgs
+## 🙏 Acknowledgements
 
-# Initialize model with default configuration
-model = ScalableVQVAE(ModelArgs())
-
-# Load pre-trained weights (if available)
-# model = ScalableVQVAE.load("path/to/model.safetensors")
-
-# Prepare input image (B, C, H, W)
-x = torch.randn(1, 3, 256, 256)
-
-# Forward pass
-with torch.no_grad():
-    reconstructed, diff = model(x)
-```
-
-### Tiled Processing for Large Images
-
-```python
-# Process large images with tiling
-x = torch.randn(1, 3, 1024, 1024)
-
-# Generate reconstructions at multiple scales
-with torch.no_grad():
-    outputs, diffs = model(x, patch_nums=[1, 2, 4], tile_size=256, overlap=32)
-    
-# outputs[0] - 1x scale reconstruction
-# outputs[1] - 2x scale reconstruction  
-# outputs[2] - 4x scale reconstruction
-```
-
-### Model Configuration
-
-```python
-from sqvae import ModelArgs
-
-# Custom configuration
-config = ModelArgs(
-    codebook_size=16384,           # Number of codebook entries
-    codebook_embed_dim=8,          # Embedding dimension
-    encoder_ch_mult=[1, 1, 2, 2, 4],  # Encoder channel multipliers
-    decoder_ch_mult=[1, 1, 2, 2, 4],  # Decoder channel multipliers
-    z_channels=256,                # Latent channels
-    commit_loss_beta=0.25,         # Commitment loss weight
-    dropout_p=0.0                  # Dropout probability
-)
-
-model = ScalableVQVAE(config)
-```
-
-## Training
-
-The model can be trained using standard VQVAE training procedures:
-
-1. **Reconstruction Loss**: MSE between input and reconstructed images
-2. **Commitment Loss**: Ensures encoder outputs stay close to codebook
-3. **Codebook Loss**: Updates codebook embeddings
-
-### Training Example
-
-```python
-# Training loop (simplified)
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-
-for batch in dataloader:
-    optimizer.zero_grad()
-    
-    reconstructed, (vq_loss, commit_loss, entropy_loss, usage) = model(batch)
-    
-    # Compute losses
-    recon_loss = F.mse_loss(reconstructed, batch)
-    total_loss = recon_loss + vq_loss + commit_loss
-    
-    total_loss.backward()
-    optimizer.step()
-```
-
-## Inference
-
-### Single Image Processing
-
-```python
-# Load and preprocess image
-from PIL import Image
-import torchvision.transforms as transforms
-
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Resize((256, 256))
-])
-
-image = Image.open("input.jpg")
-x = transform(image).unsqueeze(0)
-
-# Reconstruct
-with torch.no_grad():
-    reconstructed, _ = model(x)
-```
-
-### Multi-scale Generation
-
-```python
-# Generate at multiple scales
-with torch.no_grad():
-    outputs, _ = model(x, patch_nums=[1, 2, 4], tile_size=256, overlap=32)
-    
-    # Save results
-    for i, output in enumerate(outputs):
-        save_image(output, f"reconstruction_{2**i}x.png")
-```
-
-## Examples
-
-See `inference_example.ipynb` for detailed usage examples and visualizations.
-
-
-## Dependencies
-
-- PyTorch >= 2.0.0
-- torchvision
-- safetensors
-- numpy
-- matplotlib
-- pillow
-
-## License
-
-The code in this repository is licensed under the Apache 2.0 license.
-
-Model weights
-
-## Citation
-
-If you use this code in your research, please cite Austin J. Bryant and the Open Model Initiative.
-
-## Acknowledgments
-
-This implementation is based on the VQVAE architecture and includes improvements for scalable processing of high-resolution images.
+Huge thanks to the [OMI](https://openmodel.foundation/) community as a whole and to [Invoke](https://www.invoke.com/) for sponsoring the compute.
