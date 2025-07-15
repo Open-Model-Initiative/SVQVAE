@@ -16,8 +16,6 @@ A **scalable Vector‑Quantised Variational Autoencoder (VQ‑VAE)** that suppor
 | **Multi‑scale outputs** | Return reconstructions at user‑selected latent patch sizes (4 × 4 → 64 × 64). |
 | **Lightweight codebook** | 16 k entries, 8‑D embeddings. |
 
----
-
 ## 🏗️ Architecture
 
     Input → Encoder → **Vector Quantiser** → Decoder → Output
@@ -126,8 +124,6 @@ Coming Soon!
   license = {Apache‑2.0}
 }
 ```
-
----
 
 ## 🔒 License
 
